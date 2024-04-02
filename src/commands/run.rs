@@ -1,16 +1,23 @@
 use clap::Args;
+use crate::utils::config_reader::parse_config;
 use crate::utils::file_resolvers::resolve_configuration_file;
 
 #[derive(Args, Debug)]
 pub struct Arguments {
+    #[arg()]
+    command: String,
     #[arg(default_value = ".")]
-    target: String
+    target: String,
 }
 
 pub fn run (arguments: &Arguments) -> Result<(), String> {
-    let target = resolve_configuration_file(&arguments.target)?;
+    let Arguments { target, command } = arguments;
 
-    println!("{:?}", target);
+    let target = resolve_configuration_file(target)?;
+
+    let config = parse_config(&target)?;
+
+    println!("{:?}", config);
 
     Ok(())
 }

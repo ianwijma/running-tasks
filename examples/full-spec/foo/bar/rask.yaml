@@ -1,0 +1,5 @@
+name: bar
+
+tasks:
+  dev: echo 'Hello from bar!'
+  test: echo 'Testing from bar'

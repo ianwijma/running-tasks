@@ -1,0 +1,10 @@
+# Required
+name: main
+
+directories:
+  - foo/**
+  - hello
+
+tasks:
+  dev: echo 'Hello from main!'
+  build: echo 'Building from main!'
