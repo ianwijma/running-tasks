@@ -1,0 +1,4 @@
+name: project-doe
+
+tasks:
+  dev: echo 'Hello from project-doe?'

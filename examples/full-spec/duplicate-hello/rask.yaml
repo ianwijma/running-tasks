@@ -1,0 +1,4 @@
+name: hello
+
+tasks:
+  dev: echo 'Hello from duplicate-hello?'

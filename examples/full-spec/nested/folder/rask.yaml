@@ -1,0 +1,4 @@
+name: nested/folder
+
+tasks:
+  dev: echo 'Hello from nested/folder?'
