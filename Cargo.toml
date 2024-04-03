@@ -11,6 +11,9 @@ glob = "0.3.1"
 serde = { version = "1.0.197", features = ["derive"] }
 serde_yaml = "0.9.34"
 
+[profile.dev]
+opt-level = 0
+
 [profile.release]
 strip = true  # Automatically strip symbols from the binary.
 opt-level = "z"  # Optimize for size.

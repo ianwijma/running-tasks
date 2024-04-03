@@ -32,7 +32,8 @@ pub fn run (arguments: &Arguments) -> Result<(), String> {
 
     // Resolve dependencies based on the directory structure
     // (In the future this will be configurable based on a dependency config field)
-    // let config_structure: ConfigStructure = resolve_config_structure(configs);
+    let config_structure: ConfigStructure = resolve_config_structure(configs)?;
+    println!("config_structure: {:?}", config_structure);
 
     // Gather the tasks from the config
     // let task_structure: TaskStructure = resolve_task_structure(config_structure, task_name);
@@ -43,6 +44,28 @@ pub fn run (arguments: &Arguments) -> Result<(), String> {
     // let task_exit: TaskExit = run_task_structure(task_structure);
 
     Ok(())
+}
+
+#[derive(Debug, Clone)]
+struct ConfigStructure {
+    config: Config,
+    child: HashMap<String, ConfigStructure>
+}
+
+fn resolve_config_structure(_configs: Vec<Config>) -> Result<ConfigStructure, String> {
+    let _path_map: HashMap<PathBuf, Config> = HashMap::new();
+
+    // TODO: Create a recursive method that creates the config structure based on the directories.
+    let config_structure = ConfigStructure {
+        config: Config{
+            name: "".to_string(),
+            tasks: Default::default(),
+            path: Default::default(),
+        },
+        child: HashMap::new()
+    };
+
+    Ok(config_structure)
 }
 
 #[derive(Debug, Clone)]
