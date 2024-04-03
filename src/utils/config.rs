@@ -54,6 +54,22 @@ pub struct Config {
     sub_configs: Vec<Config>,
 }
 
+impl Config {
+    pub fn iter(self) -> ConfigIterator {
+        return ConfigIterator::new(self.clone());
+    }
+
+    pub fn get_task(&self, task_name: &String) -> Option<String> {
+        for task in self.clone().tasks {
+            if task.tag == *task_name {
+                return Some(task.command)
+            }
+        }
+
+        None
+    }
+}
+
 pub struct ConfigIterator {
     stack: Vec<Config>
 }
@@ -74,12 +90,6 @@ impl Iterator for ConfigIterator {
         self.stack.extend(next_config.sub_configs.iter().rev().map(|sub_config| sub_config.clone()));
 
         Some(next_config)
-    }
-}
-
-impl Config {
-    fn iter(self) -> ConfigIterator {
-        return ConfigIterator::new(self.clone());
     }
 }
 
