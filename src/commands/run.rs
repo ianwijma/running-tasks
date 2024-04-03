@@ -19,15 +19,12 @@ pub fn run (arguments: &Arguments) -> Result<(), String> {
 
     // Resolve the entry path
     let entry_config_path: PathBuf = resolve_config_path(entry)?;
-    println!("entry_config_path: {:?}", entry_config_path);
 
     // Discover all config paths
     let config_paths: Vec<PathBuf> = discover_config_paths(entry_config_path)?;
-    println!("config_paths: {:?}", config_paths);
 
     // Parse config file content
     let config_files: Vec<ConfigFile> = read_config_files(config_paths)?;
-    println!("config_files: {:?}", config_files);
 
     // Parse config files
     let configs: Vec<Config> = parse_config_files(config_files)?;
