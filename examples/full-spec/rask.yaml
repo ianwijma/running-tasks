@@ -6,7 +6,6 @@ directories:
   - hello
   - project-*
   - nested
-  - duplicate-*
 
 tasks:
   dev: echo 'Hello from main!'

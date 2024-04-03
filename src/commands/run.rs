@@ -1,5 +1,5 @@
 use clap::Args;
-use crate::utils::config_reader::parse_config;
+use crate::utils::config::{parse_config, validate_config};
 use crate::utils::file_resolvers::resolve_configuration_file;
 
 #[derive(Args, Debug)]
@@ -16,6 +16,11 @@ pub fn run (arguments: &Arguments) -> Result<(), String> {
     let target = resolve_configuration_file(entry)?;
 
     let config = parse_config(&target)?;
+
+    match validate_config(config.clone()) {
+        Ok(_) => {}
+        Err(err) => return Err(err)
+    }
 
     println!("{:?}", config);
 
