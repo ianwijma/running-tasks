@@ -6,14 +6,14 @@ use crate::utils::file_resolvers::resolve_configuration_file;
 pub struct Arguments {
     #[arg()]
     command: String,
-    #[arg(default_value = ".")]
-    target: String,
+    #[arg(long, default_value = ".")]
+    entry: String,
 }
 
 pub fn run (arguments: &Arguments) -> Result<(), String> {
-    let Arguments { target, command } = arguments;
+    let Arguments { entry, command } = arguments;
 
-    let target = resolve_configuration_file(target)?;
+    let target = resolve_configuration_file(entry)?;
 
     let config = parse_config(&target)?;
 
