@@ -6,6 +6,7 @@ directories:
   - hello
   - project-*
   - nested
+  - task_engine/**
 
 tasks:
   dev: echo 'Hello from main!'

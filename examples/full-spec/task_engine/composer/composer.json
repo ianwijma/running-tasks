@@ -1,0 +1,10 @@
+{
+  "scripts": {
+    "dev": "echo \"Hello from composer\"",
+    "test": "echo \"Testing from composer\"",
+    "multi": [
+      "@dev",
+      "@test"
+    ]
+  }
+}
