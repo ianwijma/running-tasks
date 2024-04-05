@@ -1,13 +1,15 @@
 use std::process::exit;
 use clap::{Parser, Subcommand};
 use commands::run;
+use commands::list;
 
 mod commands;
 mod utils;
 
 #[derive(Subcommand, Debug)]
 enum Command {
-    Run(run::Arguments)
+    Run(run::Arguments),
+    List(list::Arguments),
 }
 
 #[derive(Parser, Debug)]
@@ -21,7 +23,8 @@ fn main() {
     let arguments = Arguments::parse();
 
     let result = match &arguments.command {
-        Command::Run(arguments) => { run::run(arguments) }
+        Command::Run(arguments) => { run::execute(arguments) },
+        Command::List(arguments) => { list::execute(arguments) },
     };
 
     match result {

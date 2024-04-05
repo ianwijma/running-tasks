@@ -19,7 +19,7 @@ pub struct Arguments {
     entry: String,
 }
 
-pub fn run (arguments: &Arguments) -> Result<(), String> {
+pub fn execute (arguments: &Arguments) -> Result<(), String> {
     let Arguments { entry, task_name } = arguments;
 
     // Start the timer
