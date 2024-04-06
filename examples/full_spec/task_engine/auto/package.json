@@ -1,6 +1,6 @@
 {
   "license": "UNLICENSED",
   "scripts": {
-    "dev": "echo \"Hello from pnpm\""
+    "dev": "echo \"Hello from auto-npm\""
   }
 }

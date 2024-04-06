@@ -1,9 +1,11 @@
 use std::path::{Path, PathBuf};
 use std::fmt::Debug;
-use std::fs::{canonicalize, read_to_string};
+use std::fs::canonicalize;
 use std::collections::HashMap;
 use globset::{Glob, GlobSetBuilder};
 use serde::Deserialize;
+use crate::utils::file;
+use crate::utils::file::{ConfigFile, ConfigFileTasks, TaskEngine};
 
 #[derive(Debug, Clone)]
 pub enum TaskExit {
@@ -36,15 +38,18 @@ pub fn resolve_task_order(config_structure: ConfigStructure, task_name: &String)
 fn order_tasks(ordered_tasks: &mut OrderedTasks, config_structure: ConfigStructure, task_name: &String, index: u64) {
     let ConfigStructure { config, children } = config_structure;
     let Config { tasks, dir_path, .. } = config;
-    match tasks.get(task_name) {
-        None => {}
-        Some(&ref config_task) => ordered_tasks.push(OrderedTask{
-            task: Task {
-                command: config_task.content.clone(),
-                directory: dir_path,
-            },
-            order: index
-        })
+
+    for config_task in tasks {
+        let ConfigTask { ref key, .. } = config_task;
+        if key == task_name {
+            ordered_tasks.push(OrderedTask {
+                task: Task {
+                    command: resolve_config_task_command(&config_task.clone()),
+                    directory: dir_path.clone(), // compiler says it's being moved, No idea where...
+                },
+                order: index
+            })
+        }
     }
 
     for child in children {
@@ -107,45 +112,44 @@ fn construct_config_structure(config_path: &PathBuf, config_path_map: &HashMap<P
     Ok(config_structure)
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default, Copy)]
 pub enum TaskType {
-    SHELL
+    #[default]
+    SHELL,
+    COMPOSER,
+    NPM,
+    YARN,
 }
 
 #[derive(Debug, Clone)]
 #[allow(dead_code)]
 pub struct ConfigTask {
     pub(crate) task_type: TaskType,
-    pub(crate) content: String
+    pub(crate) key: String,
+    pub(crate) value: String,
 }
 
-type ConfigTasks = HashMap<String, ConfigTask>;
+pub fn resolve_config_task_command(config_task: &ConfigTask) -> String {
+    let ConfigTask { task_type, key, value } = config_task;
+
+    match task_type {
+        TaskType::SHELL => value.clone(),
+        TaskType::COMPOSER => format!("composer run {}", key),
+        TaskType::NPM => format!("npm run {}", key),
+        TaskType::YARN => format!("yarn run {}", key),
+    }
+}
+
+type ConfigTasks = Vec<ConfigTask>;
 type ConfigDirectories = Vec<String>;
 
-#[derive(Debug, Clone, Default, Deserialize)]
-pub enum TaskEngine {
-    #[serde(rename = "composer")]
-    COMPOSER,
-    #[serde(rename = "npm")]
-    NPM,
-    #[serde(rename = "yarn")]
-    YARN,
-    #[serde(rename = "pnpm")]
-    PNPM,
-    #[serde(rename = "none")]
-    #[default]
-    NONE
-}
-
 #[derive(Debug, Clone)]
-#[allow(dead_code)]
 pub struct Config {
-    pub(crate)name: String,
-    pub(crate)task_engine: TaskEngine,
-    pub(crate)tasks: HashMap<String, ConfigTask>,
-    pub(crate)file_path: PathBuf,
-    pub(crate)dir_path: PathBuf,
-    pub(crate)directories: ConfigDirectories,
+    pub(crate) name: String,
+    pub(crate) tasks: ConfigTasks,
+    pub(crate) file_path: PathBuf,
+    pub(crate) dir_path: PathBuf,
+    pub(crate) directories: ConfigDirectories,
 }
 
 pub fn parse_config_files(config_files: Vec<ConfigFile>) -> Result<Vec<Config>, String> {
@@ -160,19 +164,55 @@ pub fn parse_config_files(config_files: Vec<ConfigFile>) -> Result<Vec<Config>, 
 }
 
 fn parse_config_file(config_file: ConfigFile) -> Result<Config, String> {
-    let ConfigFile { name, tasks: config_file_tasks, __file_path: file_path, __dir_path: dir_path, directories, task_engine } = config_file;
+    let ConfigFile { name, directories, task_engine, tasks: config_file_tasks, .. } = config_file;
+    let ConfigFile { __file_path: file_path, __dir_path: dir_path, .. } = config_file;
 
     let tasks: ConfigTasks = match task_engine {
-        TaskEngine::COMPOSER => parse_composer_tasks(&dir_path)?,
-        TaskEngine::NPM => parse_node_tasks(&dir_path, "npm")?,
-        TaskEngine::YARN => parse_node_tasks(&dir_path, "yarn")?,
-        TaskEngine::PNPM => parse_node_tasks(&dir_path, "pnpm")?,
+        TaskEngine::COMPOSER => parse_composer_json_tasks(&dir_path)?,
+        TaskEngine::NPM => parse_package_json_tasks(&dir_path, TaskType::NPM)?,
+        TaskEngine::YARN => parse_package_json_tasks(&dir_path, TaskType::YARN)?,
         TaskEngine::NONE => parse_config_tasks(config_file_tasks)?,
+        TaskEngine::AUTO => parse_discovered_tasks(&dir_path)?,
     };
 
-    let config: Config = Config { name, tasks, file_path, dir_path, directories, task_engine };
+    let config: Config = Config { name, tasks, file_path, dir_path, directories };
 
     Ok(config)
+}
+
+const PACKAGE_JSON_FILE: &str = "package.json";
+const NPM_LOCK_FILE: &str = "package.lock";
+const YARN_LOCK_FILE: &str = "yarn.lock";
+const COMPOSER_JSON_FILE: &str = "composer.json";
+
+fn parse_discovered_tasks(dir_path: &PathBuf) -> Result<ConfigTasks, String> {
+    let mut config_tasks: ConfigTasks = vec![];
+
+    // Gathering facts
+    let has_composer_json = dir_path.join(COMPOSER_JSON_FILE).exists();
+    let has_package_json = dir_path.join(PACKAGE_JSON_FILE).exists();
+    let has_yarn_lock = dir_path.join(YARN_LOCK_FILE).exists();
+
+
+    if has_composer_json {
+        let composer_config_tasks = parse_composer_json_tasks(dir_path)?;
+        config_tasks.extend(composer_config_tasks.into_iter())
+    }
+
+    if has_package_json {
+        let mut package_config_tasks: ConfigTasks;
+
+        if has_yarn_lock {
+            package_config_tasks = parse_package_json_tasks(dir_path, TaskType::YARN)?;
+        } else {
+            // No lock file, for now we assume the uses intends to use NPM.
+            package_config_tasks = parse_package_json_tasks(dir_path, TaskType::NPM)?;
+        }
+
+        config_tasks.extend(package_config_tasks);
+    }
+
+    Ok(config_tasks)
 }
 
 #[derive(Debug, Clone, Deserialize, Default)]
@@ -181,18 +221,15 @@ struct PackageJsonFile {
     scripts: HashMap<String, String>,
 }
 
-fn parse_node_tasks(dir_path: &PathBuf, prefix: &str) -> Result<ConfigTasks, String> {
-    let mut file_path = dir_path.clone();
-    file_path.push("package.json");
-    let content = read_file_content(file_path)?;
+fn parse_package_json_tasks(dir_path: &PathBuf, task_type: TaskType) -> Result<ConfigTasks, String> {
+    let package_json = file::read_json_file::<PackageJsonFile>(&dir_path.join(PACKAGE_JSON_FILE))?;
 
-    let package_json: PackageJsonFile = serde_json::from_str(&content).expect(format!("Failed to package.json from \"{:?}\"", dir_path).as_str());
-
-    let mut config_tasks: ConfigTasks = HashMap::new();
+    let mut config_tasks: ConfigTasks = vec![];
     for key in package_json.scripts.keys() {
-        config_tasks.insert(key.clone(), ConfigTask {
-            task_type: TaskType::SHELL,
-            content: format!("{:?} run {:?}", prefix, key)
+        config_tasks.push(ConfigTask {
+            task_type,
+            key: key.clone(),
+            value: key.clone()
         });
     }
 
@@ -212,18 +249,15 @@ struct ComposerJsonFile {
     scripts: HashMap<String, ComposerJsonScriptValue>,
 }
 
-fn parse_composer_tasks(dir_path: &PathBuf) -> Result<ConfigTasks, String> {
-    let mut file_path = dir_path.clone();
-    file_path.push("composer.json");
-    let content = read_file_content(file_path)?;
+fn parse_composer_json_tasks(dir_path: &PathBuf) -> Result<ConfigTasks, String> {
+    let package_json = file::read_json_file::<ComposerJsonFile>(&dir_path.join(COMPOSER_JSON_FILE))?;
 
-    let package_json: ComposerJsonFile = serde_json::from_str(&content).expect(format!("Failed to composer.json from \"{:?}\"", dir_path).as_str());
-
-    let mut config_tasks: ConfigTasks = HashMap::new();
+    let mut config_tasks: ConfigTasks = vec![];
     for key in package_json.scripts.keys() {
-        config_tasks.insert(key.clone(), ConfigTask {
-            task_type: TaskType::SHELL,
-            content: format!("composer run {:?}", key)
+        config_tasks.push(ConfigTask {
+            task_type: TaskType::COMPOSER,
+            key: key.clone(),
+            value: key.clone(),
         });
     }
 
@@ -231,25 +265,24 @@ fn parse_composer_tasks(dir_path: &PathBuf) -> Result<ConfigTasks, String> {
 }
 
 fn parse_config_tasks(tasks: ConfigFileTasks) -> Result<ConfigTasks, String> {
-    let mut config_tasks: ConfigTasks = HashMap::new();
+    let mut config_tasks: ConfigTasks = vec![];
 
     for (key, value) in tasks {
-        let config_task: ConfigTask = ConfigTask {
+        config_tasks.push(ConfigTask {
             task_type: TaskType::SHELL,
-            content: value
-        };
-
-        config_tasks.insert(key, config_task);
+            key,
+            value
+        });
     }
 
     Ok(config_tasks)
 }
 
-pub fn read_config_files(paths: Vec<PathBuf>) -> Result<Vec<ConfigFile>, String> {
+pub fn read_config_files(config_file_paths: Vec<PathBuf>) -> Result<Vec<ConfigFile>, String> {
     let mut configs_files: Vec<ConfigFile> = vec![];
 
-    for path in paths {
-        let config_file = read_config_file(path)?;
+    for config_file_path in config_file_paths {
+        let config_file = file::read_config_file(config_file_path)?;
         configs_files.push(config_file);
     }
 
@@ -262,7 +295,7 @@ pub fn discover_config_paths(path: &PathBuf) -> Result<Vec<PathBuf>, String> {
     // Read config
     let mut path_stack: Vec<PathBuf> = vec![path.clone()];
     while !path_stack.is_empty() {
-        let ConfigFile { directories, __file_path: _file_path, .. } = read_config_file(path_stack.pop().unwrap())?;
+        let ConfigFile { directories, __file_path: _file_path, .. } = file::read_config_file(path_stack.pop().unwrap())?;
 
         // Extract directories
         let config_directory = _file_path.parent().ok_or("Failed to get parent directory")?;
@@ -297,42 +330,6 @@ fn get_config_glob_pattern(root_path: &Path, glob_pattern: &String) -> PathBuf {
     pattern
 }
 
-fn read_file_content (path: PathBuf) -> Result<String, String> {
-    match read_to_string(path) {
-        Ok(content) => Ok(content),
-        Err(err) => Err(format!("Failed to read file: {}", err)),
-    }
-}
-
-type ConfigFileTasks = HashMap<String, String>;
-
-#[derive(Debug, Deserialize, Default)]
-pub struct ConfigFile {
-    pub(crate) name: String,
-    #[serde(default)]
-    pub(crate) task_engine: TaskEngine,
-    #[serde(default)]
-    pub(crate) directories: ConfigDirectories,
-    #[serde(default)]
-    pub(crate) tasks: ConfigFileTasks,
-    // The following fields are not part of the yaml file.
-    #[serde(default)]
-    __file_path: PathBuf,
-    #[serde(default)]
-    __dir_path: PathBuf,
-}
-
-fn read_config_file(path: PathBuf) -> Result<ConfigFile, String> {
-    let content = read_file_content(path.clone())?;
-
-    let mut config_file: ConfigFile = serde_yaml::from_str(&content).expect(format!("Failed to parse YAML from \"{:?}\"", path).as_str());
-
-    config_file.__file_path = path.clone();
-    config_file.__dir_path = path.parent().unwrap().to_path_buf();
-
-    Ok(config_file)
-}
-
 pub fn resolve_config_path<P: AsRef<Path> + Debug + Clone + Copy>(path: P) -> Result<PathBuf, String> {
     let full_path = match canonicalize(path) {
         Ok(full_path) => full_path,
@@ -355,8 +352,7 @@ fn find_config_file(directory_path: PathBuf) -> Result<PathBuf, String> {
     }
 
     for filename in CONFIG_FILENAMES {
-        let mut possible_config_file = directory_path.clone();
-        possible_config_file.push(filename);
+        let possible_config_file = directory_path.join(filename);
         match possible_config_file.exists() {
             true => return Ok(possible_config_file),
             false => {}

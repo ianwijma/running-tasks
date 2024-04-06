@@ -6,7 +6,8 @@ use std::thread::JoinHandle;
 use std::time::Instant;
 use clap::Args;
 use crate::utils::config;
-use crate::utils::config::{Config, ConfigFile, ConfigStructure, OrderedTask, OrderedTasks, Task, TaskExit};
+use crate::utils::config::{Config, ConfigStructure, OrderedTask, OrderedTasks, Task, TaskExit};
+use crate::utils::file::ConfigFile;
 
 #[derive(Args, Debug)]
 pub struct Arguments {
@@ -26,10 +27,10 @@ pub fn execute (arguments: &Arguments) -> Result<(), String> {
     let entry_config_path: PathBuf = config::resolve_config_path(entry)?;
 
     // Discover all config paths
-    let config_paths: Vec<PathBuf> = config::discover_config_paths(&entry_config_path)?;
+    let config_file_paths: Vec<PathBuf> = config::discover_config_paths(&entry_config_path)?;
 
     // Parse config file content
-    let config_files: Vec<ConfigFile> = config::read_config_files(config_paths)?;
+    let config_files: Vec<ConfigFile> = config::read_config_files(config_file_paths)?;
 
     // Parse config files
     let configs: Vec<Config> = config::parse_config_files(config_files)?;
@@ -104,12 +105,13 @@ fn run_task_order(ordered_tasks: &OrderedTasks, order: u64) -> Result<(), String
 
 fn execute_task(task: &Task) -> Result<JoinHandle<bool>, String> {
     let task_thread = thread::spawn({
-        let task = task.clone();
+        let Task { command, directory } = task.clone();
+        println!("[COMMAND] {} @ {:?}", command, directory);
         move || {
             let status = Command::new("sh")
                 .arg("-c")
-                .arg(&task.command)
-                .current_dir(&task.directory)
+                .arg(command)
+                .current_dir(directory)
                 .status()
                 .expect("Failed to execute command");
             status.success()

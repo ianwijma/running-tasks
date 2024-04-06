@@ -1,0 +1,6 @@
+{
+  "license": "UNLICENSED",
+  "scripts": {
+    "dev": "echo \"Hello from npm\""
+  }
+}
