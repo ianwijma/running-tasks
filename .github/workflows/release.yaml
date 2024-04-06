@@ -18,20 +18,22 @@ jobs:
       - name: Compile Linux - X86_64
         id: linux
         uses: rust-build/rust-build.action@v1.4.5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           RUSTTARGET: x86_64-unknown-linux-musl
           EXTRA_FILES: "readme.md LICENSE"
           ARCHIVE_TYPES: "tar.gz"
-          UPLOAD_MODE: none
 
       - name: Compile Windows - X86_64
         id: windows
         uses: rust-build/rust-build.action@v1.4.5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           RUSTTARGET: x86_64-pc-windows-gnu
           EXTRA_FILES: "readme.md LICENSE"
           ARCHIVE_TYPES: "zip"
-          UPLOAD_MODE: none
 
 # Broken: https://github.com/rust-build/rust-build.action/issues/88
 #      - name: Compile Mac - X86_64
