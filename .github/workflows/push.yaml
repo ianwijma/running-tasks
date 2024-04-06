@@ -1,5 +1,5 @@
 name: Rust Build
-run-name: ${{ github.actor }} is building the files for a release 🚀
+run-name: ${{ github.actor }} is building 🚀
 on:
   push:
     branches-ignore:
@@ -17,18 +17,14 @@ jobs:
 #            target: x86_64-pc-windows-gnu
           - release_for: Linux - X86_64
             target: x86_64-unknown-linux-musl
-#          - release_for: FreeBSD - x86_64
-#            target: x86_64-unknown-freebsd
 #          - release_for: Mac - X86_64
 #            target: x86_64-apple-darwin
-#          - release_for: Mac - ARM
-#            target: aarch64-apple-darwin
     steps:
       - uses: actions/checkout@master
       - name: Compile
         timeout-minutes: 10
         id: compile
-        uses: houseabsolute/actions-rust-cross@v0
+        uses: rust-build/rust-build.action@v1.4.5
         with:
-          command: build
-          target: ${{ matrix.platform.target }}
+          RUSTTARGET: ${{ matrix.target }}
+          UPLOAD_MODE: none
