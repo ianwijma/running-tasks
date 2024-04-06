@@ -25,12 +25,12 @@ struct Arguments {
 }
 
 fn main() {
-    let arguments = Arguments::parse();
+    let Arguments { command } = Arguments::parse();
 
-    let result = match &arguments.command {
-        Command::Run(arguments) => { run::execute(arguments) },
-        Command::List(arguments) => { list::execute(arguments) },
-        Command::Init(arguments) => { init::execute(arguments) },
+    let result = match command {
+        Command::Run(arguments) => { run::execute(&arguments) },
+        Command::List(arguments) => { list::execute(&arguments) },
+        Command::Init(arguments) => { init::execute(&arguments) },
     };
 
     match result {
