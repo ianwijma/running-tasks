@@ -21,8 +21,7 @@ jobs:
         with:
           RUSTTARGET: x86_64-unknown-linux-musl
           EXTRA_FILES: "readme.md LICENSE"
-          ARCHIVE_TYPES: "zip tar.gz"
-          ARCHIVE_NAME: "rask-x86_64-linux.tag.gz"
+          ARCHIVE_TYPES: "tar.gz"
           UPLOAD_MODE: none
 
       - name: Compile Windows - X86_64
@@ -32,7 +31,6 @@ jobs:
           RUSTTARGET: x86_64-pc-windows-gnu
           EXTRA_FILES: "readme.md LICENSE"
           ARCHIVE_TYPES: "zip"
-          ARCHIVE_NAME: "rask-x86_64-windows.zip"
           UPLOAD_MODE: none
 
 # Broken: https://github.com/rust-build/rust-build.action/issues/88
@@ -72,8 +70,5 @@ jobs:
 #            ${{ steps.mac_x86.outputs.BUILT_ARCHIVE }}
 #            ${{ steps.mac_x86.outputs.BUILT_CHECKSUM }}
         if: success()
-
-      - name: Print Release URL
-        run: echo "Release created @ ${{steps.create_release.outputs.html_url}}"
 
 
