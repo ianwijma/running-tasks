@@ -20,7 +20,7 @@ jobs:
         uses: rust-build/rust-build.action@v1.4.5
         with:
           RUSTTARGET: x86_64-unknown-linux-musl
-          EXTRA_FILES: "README.md LICENSE"
+          EXTRA_FILES: "readme.md LICENSE"
           ARCHIVE_TYPES: "zip tar.gz"
           ARCHIVE_NAME: "rask-x86_64-linux.tag.gz"
           UPLOAD_MODE: none
@@ -30,7 +30,7 @@ jobs:
         uses: rust-build/rust-build.action@v1.4.5
         with:
           RUSTTARGET: x86_64-pc-windows-gnu
-          EXTRA_FILES: "README.md LICENSE"
+          EXTRA_FILES: "readme.md LICENSE"
           ARCHIVE_TYPES: "zip"
           ARCHIVE_NAME: "rask-x86_64-windows.zip"
           UPLOAD_MODE: none
@@ -41,7 +41,7 @@ jobs:
 #        uses: rust-build/rust-build.action@v1.4.5
 #        with:
 #          RUSTTARGET: x86_64-apple-darwin
-#          EXTRA_FILES: "README.md LICENSE"
+#          EXTRA_FILES: "readme.md LICENSE"
 #          UPLOAD_MODE: none
 
       - name: Upload artifact
