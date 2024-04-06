@@ -29,12 +29,13 @@ jobs:
           RUSTTARGET: x86_64-pc-windows-gnu
           UPLOAD_MODE: none
 
-      - name: Compile Mac - X86_64
-        id: mac_x86
-        uses: rust-build/rust-build.action@v1.4.5
-        with:
-          RUSTTARGET: x86_64-apple-darwin
-          UPLOAD_MODE: none
+# Broken: https://github.com/rust-build/rust-build.action/issues/88
+#      - name: Compile Mac - X86_64
+#        id: mac_x86
+#        uses: rust-build/rust-build.action@v1.4.5
+#        with:
+#          RUSTTARGET: x86_64-apple-darwin
+#          UPLOAD_MODE: none
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
