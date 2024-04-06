@@ -144,6 +144,7 @@ type ConfigDirectories = Vec<String>;
 
 #[derive(Debug, Clone)]
 pub struct Config {
+    #[allow(dead_code)]
     pub(crate) name: String,
     pub(crate) tasks: ConfigTasks,
     pub(crate) file_path: PathBuf,
