@@ -3,3 +3,4 @@ name: running-tasks
 tasks:
   build: cargo build --release
   local: echo "Updating..." && cargo build --release && cp ./target/release/rask ~/bin/ && chmod +x ~/bin/rask && echo "Updating complete!" && echo "" & true
+  test: echo "It works!"
