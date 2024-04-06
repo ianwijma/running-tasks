@@ -7,7 +7,7 @@ on:
 
 jobs:
   push:
-    name: building - ${{ matrix.platform.release_for }}
+    name: building
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -31,5 +31,3 @@ jobs:
         with:
           command: build
           target: ${{ matrix.platform.target }}
-          args: "--locked --release"
-          strip: true
