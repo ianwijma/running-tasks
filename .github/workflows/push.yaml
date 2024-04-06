@@ -13,12 +13,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-#          - release_for: Windows - X86_64
-#            target: x86_64-pc-windows-gnu
+          - release_for: Windows - X86_64
+            target: x86_64-pc-windows-gnu
           - release_for: Linux - X86_64
             target: x86_64-unknown-linux-musl
-#          - release_for: Mac - X86_64
-#            target: x86_64-apple-darwin
+          - release_for: Mac - X86_64
+            target: x86_64-apple-darwin
     steps:
       - name: Checkout branch
         uses: actions/checkout@v4
