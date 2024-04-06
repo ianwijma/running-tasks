@@ -55,7 +55,7 @@ pub type ConfigFileTasks = HashMap<String, String>;
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
 pub struct ConfigFile {
     pub(crate) name: String,
-    #[serde(default, skip_serializing_if = "is_auto_task_engine")]
+    #[serde(default, skip_serializing_if = "is_default_task_engine")]
     pub(crate) task_engine: TaskEngine,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub(crate) directories: Vec<String>,
@@ -68,8 +68,9 @@ pub struct ConfigFile {
     pub(crate) __dir_path: PathBuf,
 }
 
-fn is_auto_task_engine(value: &TaskEngine) -> bool {
+fn is_default_task_engine(value: &TaskEngine) -> bool {
     match value {
+        // Changing the default is generally discouraged.
         TaskEngine::AUTO => true,
         _ => false,
     }
