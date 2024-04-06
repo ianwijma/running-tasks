@@ -20,7 +20,7 @@ pub fn write_file_content(file_path: &PathBuf, content: &str) -> Result<(), Stri
 pub fn read_json_file<T: for<'a> Deserialize<'a>>(file_path: &PathBuf) -> Result<T, String> {
     let content = read_file_content(file_path.clone())?;
 
-    let file_content: T = serde_json::from_str::<T>(&content).map_err(|err| err.to_string());
+    let file_content: T = serde_json::from_str::<T>(&content).map_err(|err| err.to_string())?;
 
     Ok(file_content)
 }

@@ -6,8 +6,8 @@ on:
       - release
 
 jobs:
-  release:
-    name: release ${{ matrix.target }}
+  push:
+    name: building
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
