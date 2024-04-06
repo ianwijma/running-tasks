@@ -113,7 +113,7 @@ fn execute_task(task: &Task) -> Result<JoinHandle<bool>, String> {
                 .arg(command)
                 .current_dir(directory)
                 .status()
-                .expect("Failed to execute command");
+                .map_err(|err| err.to_string());
             status.success()
         }
     });

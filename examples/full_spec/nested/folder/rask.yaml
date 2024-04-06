@@ -2,3 +2,4 @@ name: nested/folder
 
 tasks:
   dev: echo 'Hello from nested/folder?'
+  meme: echo 'Meme from nested/folder?'

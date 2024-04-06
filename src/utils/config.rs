@@ -1,6 +1,5 @@
 use std::path::{Path, PathBuf};
 use std::fmt::Debug;
-use std::fs::canonicalize;
 use std::collections::HashMap;
 use globset::{Glob, GlobSetBuilder};
 use serde::Deserialize;
@@ -172,7 +171,7 @@ fn parse_config_file(config_file: ConfigFile) -> Result<Config, String> {
         TaskEngine::NPM => parse_package_json_tasks(&dir_path, TaskType::NPM)?,
         TaskEngine::YARN => parse_package_json_tasks(&dir_path, TaskType::YARN)?,
         TaskEngine::NONE => parse_config_tasks(config_file_tasks)?,
-        TaskEngine::AUTO => parse_discovered_tasks(&dir_path)?,
+        TaskEngine::AUTO => parse_discovered_tasks(&dir_path, config_file_tasks)?,
     };
 
     let config: Config = Config { name, tasks, file_path, dir_path, directories };
@@ -181,12 +180,11 @@ fn parse_config_file(config_file: ConfigFile) -> Result<Config, String> {
 }
 
 const PACKAGE_JSON_FILE: &str = "package.json";
-const NPM_LOCK_FILE: &str = "package.lock";
 const YARN_LOCK_FILE: &str = "yarn.lock";
 const COMPOSER_JSON_FILE: &str = "composer.json";
 
-fn parse_discovered_tasks(dir_path: &PathBuf) -> Result<ConfigTasks, String> {
-    let mut config_tasks: ConfigTasks = vec![];
+fn parse_discovered_tasks(dir_path: &PathBuf, config_file_tasks: ConfigFileTasks) -> Result<ConfigTasks, String> {
+    let mut config_tasks: ConfigTasks = parse_config_tasks(config_file_tasks)?;
 
     // Gathering facts
     let has_composer_json = dir_path.join(COMPOSER_JSON_FILE).exists();
@@ -200,7 +198,7 @@ fn parse_discovered_tasks(dir_path: &PathBuf) -> Result<ConfigTasks, String> {
     }
 
     if has_package_json {
-        let mut package_config_tasks: ConfigTasks;
+        let package_config_tasks: ConfigTasks;
 
         if has_yarn_lock {
             package_config_tasks = parse_package_json_tasks(dir_path, TaskType::YARN)?;
@@ -331,10 +329,7 @@ fn get_config_glob_pattern(root_path: &Path, glob_pattern: &String) -> PathBuf {
 }
 
 pub fn resolve_config_path<P: AsRef<Path> + Debug + Clone + Copy>(path: P) -> Result<PathBuf, String> {
-    let full_path = match canonicalize(path) {
-        Ok(full_path) => full_path,
-        Err(_) => return Err(format!("Target does not exists: {:?}", path.clone()))
-    };
+    let full_path = file::parse_path_string(path)?;
 
     if full_path.is_dir() {
         let config_file = find_config_file(full_path)?;

@@ -40,8 +40,8 @@ fn get_config_tasks(configs: &Vec<Config>) -> Result<Vec<String>, String> {
     let mut tasks: Vec<String> = vec![];
 
     for config in configs {
-        for configTask in &config.tasks {
-            let ConfigTask { key, .. } = configTask;
+        for config_task in &config.tasks {
+            let ConfigTask { key, .. } = config_task;
             if !tasks.contains(&key) {
                 tasks.push(key.clone());
             }
