@@ -1,0 +1,69 @@
+name: Rust Build
+run-name: ${{ github.actor }} is building the files for a release 🚀
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  release:
+    name: release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Compile Linux - X86_64
+        id: linux
+        uses: rust-build/rust-build.action@v1.4.5
+        with:
+          RUSTTARGET: x86_64-unknown-linux-musl
+          UPLOAD_MODE: none
+
+      - name: Compile Windows - X86_64
+        id: windows
+        uses: rust-build/rust-build.action@v1.4.5
+        with:
+          RUSTTARGET: x86_64-pc-windows-gnu
+          UPLOAD_MODE: none
+
+      - name: Compile Mac - X86_64
+        id: mac_x86
+        uses: rust-build/rust-build.action@v1.4.5
+        with:
+          RUSTTARGET: x86_64-apple-darwin
+          UPLOAD_MODE: none
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Binary
+          path: |
+            ${{ steps.linux.outputs.BUILT_ARCHIVE }}
+            ${{ steps.linux.outputs.BUILT_CHECKSUM }}
+            ${{ steps.windows.outputs.BUILT_ARCHIVE }}
+            ${{ steps.windows.outputs.BUILT_CHECKSUM }}
+            ${{ steps.mac_x86.outputs.BUILT_ARCHIVE }}
+            ${{ steps.mac_x86.outputs.BUILT_CHECKSUM }}
+
+      - name: Create release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          files: |
+            ${{ steps.linux.outputs.BUILT_ARCHIVE }}
+            ${{ steps.linux.outputs.BUILT_CHECKSUM }}
+            ${{ steps.windows.outputs.BUILT_ARCHIVE }}
+            ${{ steps.windows.outputs.BUILT_CHECKSUM }}
+            ${{ steps.mac_x86.outputs.BUILT_ARCHIVE }}
+            ${{ steps.mac_x86.outputs.BUILT_CHECKSUM }}
+        if: success()
+
+      - name: Print Release URL
+        run: echo "Release created @ ${{steps.create_release.outputs.html_url}}"
+
+

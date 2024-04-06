@@ -20,8 +20,12 @@ jobs:
 #          - release_for: Mac - X86_64
 #            target: x86_64-apple-darwin
     steps:
-      - uses: actions/checkout@master
-      - name: Compile
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Compile rust
         timeout-minutes: 10
         id: compile
         uses: rust-build/rust-build.action@v1.4.5
