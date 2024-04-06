@@ -20,6 +20,7 @@ jobs:
         uses: rust-build/rust-build.action@v1.4.5
         with:
           RUSTTARGET: x86_64-unknown-linux-musl
+          EXTRA_FILES: "README.md LICENSE"
           UPLOAD_MODE: none
 
       - name: Compile Windows - X86_64
@@ -27,6 +28,7 @@ jobs:
         uses: rust-build/rust-build.action@v1.4.5
         with:
           RUSTTARGET: x86_64-pc-windows-gnu
+          EXTRA_FILES: "README.md LICENSE"
           UPLOAD_MODE: none
 
 # Broken: https://github.com/rust-build/rust-build.action/issues/88
@@ -35,6 +37,7 @@ jobs:
 #        uses: rust-build/rust-build.action@v1.4.5
 #        with:
 #          RUSTTARGET: x86_64-apple-darwin
+#          EXTRA_FILES: "README.md LICENSE"
 #          UPLOAD_MODE: none
 
       - name: Upload artifact

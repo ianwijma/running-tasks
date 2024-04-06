@@ -6,15 +6,15 @@ use crate::utils::file::ConfigFile;
 
 #[derive(Args, Debug)]
 pub struct Arguments {
-    #[arg(long, default_value = ".", help = "Which directory to use as entry, defaults to the current directory")]
-    entry: String,
+    #[arg(long, help = "The entry directory or rask.yaml file")]
+    entry: Option<String>,
 }
 
 pub fn execute (arguments: &Arguments) -> Result<(), String> {
     let Arguments { entry } = arguments;
 
     // Resolve the entry path
-    let entry_config_path: PathBuf = config::resolve_config_path(entry)?;
+    let entry_config_path: PathBuf = config::resolve_config_path(&entry.clone().unwrap_or(".".to_string()))?;
 
     // Discover all config paths
     let config_file_paths: Vec<PathBuf> = config::discover_config_paths(&entry_config_path)?;

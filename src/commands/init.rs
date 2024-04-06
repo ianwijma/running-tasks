@@ -3,16 +3,16 @@ use crate::utils::file::{ConfigFile, parse_path_string, write_config_file};
 
 #[derive(Args, Debug)]
 pub struct Arguments {
-    #[arg(long, default_value = ".", help = "Which directory to use as entry, defaults to the current directory")]
-    entry: String,
-    #[arg(help = "then name of the config file, defaults to the directory name", default_value = "")]
-    name: String,
+    #[arg(long, help = "The entry directory or rask.yaml file")]
+    entry: Option<String>,
+    #[arg(help = "The rask config name, defaults to the directory name")]
+    name: Option<String>,
 }
 
 pub fn execute(arguments: &Arguments) -> Result<(), String> {
     let Arguments { entry, name } = arguments;
 
-    let mut path = parse_path_string(entry)?;
+    let mut path = parse_path_string(&entry.clone().unwrap_or(".".to_string()))?;
     if path.is_dir() {
         path.push("rask.yaml")
     }
@@ -21,8 +21,8 @@ pub fn execute(arguments: &Arguments) -> Result<(), String> {
         return Err(format!("Rask already initialised at {:?}", path));
     }
 
-    let mut config_name = name.clone(); // Use clone to avoid modifying the original input
-    if config_name.is_empty() {
+    let config_name: String;
+    if name.is_none() {
         config_name = path.parent()
             .unwrap()
             .file_name()
@@ -30,6 +30,8 @@ pub fn execute(arguments: &Arguments) -> Result<(), String> {
             .to_str()
             .unwrap()
             .to_string();
+    } else {
+        config_name = name.clone().unwrap();
     }
 
     let config_file: ConfigFile = ConfigFile {

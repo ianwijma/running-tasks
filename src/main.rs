@@ -9,13 +9,16 @@ mod utils;
 
 #[derive(Subcommand, Debug)]
 enum Command {
+    /// Run specific tasks
     Run(run::Arguments),
+    /// List available tasks
     List(list::Arguments),
+    /// Initialize a new rask entry
     Init(init::Arguments),
 }
 
 #[derive(Parser, Debug)]
-#[command(author, version, about, long_about = None, propagate_version = true)]
+#[command(author, version, about = "Rask - The universal way of running tasks", long_about = None, propagate_version = true)]
 struct Arguments {
     #[command(subcommand)]
     command: Command
