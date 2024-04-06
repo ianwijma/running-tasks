@@ -53,8 +53,9 @@ jobs:
             ${{ steps.linux.outputs.BUILT_CHECKSUM }}
             ${{ steps.windows.outputs.BUILT_ARCHIVE }}
             ${{ steps.windows.outputs.BUILT_CHECKSUM }}
-            ${{ steps.mac_x86.outputs.BUILT_ARCHIVE }}
-            ${{ steps.mac_x86.outputs.BUILT_CHECKSUM }}
+# Broken: https://github.com/rust-build/rust-build.action/issues/88
+#            ${{ steps.mac_x86.outputs.BUILT_ARCHIVE }}
+#            ${{ steps.mac_x86.outputs.BUILT_CHECKSUM }}
 
       - name: Create release
         id: create_release
@@ -67,8 +68,9 @@ jobs:
             ${{ steps.linux.outputs.BUILT_CHECKSUM }}
             ${{ steps.windows.outputs.BUILT_ARCHIVE }}
             ${{ steps.windows.outputs.BUILT_CHECKSUM }}
-            ${{ steps.mac_x86.outputs.BUILT_ARCHIVE }}
-            ${{ steps.mac_x86.outputs.BUILT_CHECKSUM }}
+# Broken: https://github.com/rust-build/rust-build.action/issues/88
+#            ${{ steps.mac_x86.outputs.BUILT_ARCHIVE }}
+#            ${{ steps.mac_x86.outputs.BUILT_CHECKSUM }}
         if: success()
 
       - name: Print Release URL
