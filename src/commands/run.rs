@@ -15,10 +15,12 @@ pub struct Arguments {
     task_name: String,
     #[arg(long, help = "The entry directory or rask.yaml file")]
     entry: Option<String>,
+    #[arg(long, help = "enable strict command matching, defaults to checking if a command starts with a key")]
+    strict: bool,
 }
 
 pub fn execute (arguments: &Arguments) -> Result<(), String> {
-    let Arguments { entry, task_name } = arguments;
+    let Arguments { entry, task_name, strict } = arguments;
 
     // Start the timer
     let start_time = Instant::now();
@@ -40,7 +42,7 @@ pub fn execute (arguments: &Arguments) -> Result<(), String> {
     let config_structure: ConfigStructure = config::resolve_config_structure(&entry_config_path, configs)?;
 
     // Gather the tasks from the config
-    let ordered_tasks: OrderedTasks = config::resolve_task_order(config_structure, task_name)?;
+    let ordered_tasks: OrderedTasks = config::resolve_task_order(config_structure, task_name, strict)?;
 
     // Run the commands, one by one
     // > In the future this is configurable on the rask level and maybe on the config file level

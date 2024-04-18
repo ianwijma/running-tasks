@@ -26,21 +26,26 @@ pub struct OrderedTask {
 
 pub type OrderedTasks = Vec<OrderedTask>;
 
-pub fn resolve_task_order(config_structure: ConfigStructure, task_name: &String) -> Result<OrderedTasks, String> {
+pub fn resolve_task_order(config_structure: ConfigStructure, task_name: &String, strict_match: &bool) -> Result<OrderedTasks, String> {
     let mut ordered_tasks: OrderedTasks = vec![];
 
-    order_tasks(&mut ordered_tasks, config_structure, task_name, 0);
+    order_tasks(&mut ordered_tasks, config_structure, task_name, 0, strict_match);
 
     Ok(ordered_tasks)
 }
 
-fn order_tasks(ordered_tasks: &mut OrderedTasks, config_structure: ConfigStructure, task_name: &String, index: u64) {
+fn order_tasks(ordered_tasks: &mut OrderedTasks, config_structure: ConfigStructure, task_name: &String, index: u64, strict_match: &bool) {
     let ConfigStructure { config, children } = config_structure;
     let Config { tasks, dir_path, .. } = config;
 
     for config_task in tasks {
         let ConfigTask { ref key, .. } = config_task;
-        if key == task_name {
+        let key_matches = match strict_match {
+            true => key == task_name,
+            false => key.starts_with(task_name),
+        };
+
+        if key_matches {
             ordered_tasks.push(OrderedTask {
                 task: Task {
                     command: resolve_config_task_command(&config_task.clone()),
@@ -52,7 +57,7 @@ fn order_tasks(ordered_tasks: &mut OrderedTasks, config_structure: ConfigStructu
     }
 
     for child in children {
-        order_tasks(ordered_tasks, child, task_name, index+1);
+        order_tasks(ordered_tasks, child, task_name, index+1, strict_match);
     }
 }
 
