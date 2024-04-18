@@ -6,7 +6,7 @@ use crate::utils::file::ConfigFile;
 
 #[derive(Args, Debug)]
 pub struct Arguments {
-    #[arg(long, help = "The entry directory or rask.yaml file")]
+    #[arg(help = "The entry directory or rask.yaml file")]
     entry: Option<String>,
 }
 

@@ -3,7 +3,7 @@ use crate::utils::file::{ConfigFile, parse_path_string, write_config_file};
 
 #[derive(Args, Debug)]
 pub struct Arguments {
-    #[arg(long, help = "The entry directory or rask.yaml file")]
+    #[arg(help = "The entry directory or rask.yaml file")]
     entry: Option<String>,
     #[arg(help = "The rask config name, defaults to the directory name")]
     name: Option<String>,
