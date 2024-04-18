@@ -6,6 +6,9 @@ tasks:
   setup:
     first: 'echo "Hello from setup:first"'
     second: 'echo "Hello from setup:second"'
+  sleep:
+    first: 'sleep 1 && echo "Hello from setup:first"'
+    second: 'echo "Hello from setup:second"'
   build:
     first: 'echo "Hello from build:first"'
     second: 'echo "Hello from build:second"'

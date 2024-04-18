@@ -9,12 +9,12 @@ mod utils;
 
 #[derive(Subcommand, Debug)]
 enum Command {
-    /// Run specific tasks
-    Run(run::Arguments),
-    /// List available tasks
-    List(list::Arguments),
     /// Initialize a new rask entry
     Init(init::Arguments),
+    /// List available tasks
+    List(list::Arguments),
+    /// Run specific tasks
+    Run(run::Arguments),
 }
 
 #[derive(Parser, Debug)]

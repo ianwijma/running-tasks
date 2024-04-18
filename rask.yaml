@@ -4,4 +4,4 @@ tasks:
   build: cargo build --release
   local: echo "Updating..." && cargo build --release && cp ./target/release/rask ~/bin/ && chmod +x ~/bin/rask && echo "Updating complete!" && echo "" & true
   test: echo "It works!"
-  sleep: sleep 1 && echo *Yawn* I slept well!
+  sleep: sleep 5 && echo *Yawn* I slept well!
