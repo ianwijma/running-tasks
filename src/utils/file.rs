@@ -50,7 +50,14 @@ pub enum TaskEngine {
     AUTO,
 }
 
-pub type ConfigFileTasks = HashMap<String, String>;
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(untagged)]
+pub enum ConfigFileTaskValue {
+    String(String),
+    ConfigFileTasks(ConfigFileTasks)
+}
+
+pub type ConfigFileTasks = HashMap<String, ConfigFileTaskValue>;
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
 pub struct ConfigFile {

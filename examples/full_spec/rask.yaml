@@ -7,6 +7,7 @@ directories:
   - project-*
   - nested
   - task_engine/**
+  - nested-tasks
 
 tasks:
   dev: echo 'Hello from main!'

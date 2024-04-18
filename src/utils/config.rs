@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use globset::{Glob, GlobSetBuilder};
 use serde::Deserialize;
 use crate::utils::file;
-use crate::utils::file::{ConfigFile, ConfigFileTasks, TaskEngine};
+use crate::utils::file::{ConfigFile, ConfigFileTasks, ConfigFileTaskValue, TaskEngine};
 
 #[derive(Debug, Clone)]
 pub enum TaskExit {
@@ -263,16 +263,32 @@ fn parse_composer_json_tasks(dir_path: &PathBuf) -> Result<ConfigTasks, String> 
     Ok(config_tasks)
 }
 
+fn flatten_config_tasks(tasks: &ConfigFileTasks, prefix: &str, results: &mut ConfigTasks) {
+    for (task_name, task_value) in tasks {
+        let key = match prefix.len() == 0 {
+            true => task_name.clone(),
+            false => format!("{}:{}", prefix, task_name)
+        };
+
+        match task_value {
+            ConfigFileTaskValue::String(value) => {
+                results.push(ConfigTask{
+                    task_type: TaskType::SHELL,
+                    key,
+                    value: value.clone()
+                });
+            }
+            ConfigFileTaskValue::ConfigFileTasks(subtasks) => {
+                flatten_config_tasks(subtasks, &key, results);
+            }
+        }
+    }
+}
+
 fn parse_config_tasks(tasks: ConfigFileTasks) -> Result<ConfigTasks, String> {
     let mut config_tasks: ConfigTasks = vec![];
 
-    for (key, value) in tasks {
-        config_tasks.push(ConfigTask {
-            task_type: TaskType::SHELL,
-            key,
-            value
-        });
-    }
+    flatten_config_tasks(&tasks, "", &mut config_tasks);
 
     Ok(config_tasks)
 }
