@@ -1,4 +1,4 @@
-name: Rust Build
+name: Build Rask
 run-name: ${{ github.actor }} is building 🚀
 on:
   push:
