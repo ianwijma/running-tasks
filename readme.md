@@ -5,6 +5,7 @@ Rask
 
 **R**unning T**ask**s - The universal way of running tasks.
 
+Check the `examples/` dir for, well, examples.
 
 ```shell
 Usage: rask <COMMAND>
