@@ -9,7 +9,7 @@ use crate::utils::file::{ConfigFile, ConfigFileTasks, ConfigFileTaskValue, TaskE
 #[derive(Debug, Clone)]
 pub enum TaskExit {
     SUCCESS,
-    FAILURE
+    // FAILURE
 }
 
 #[derive(Debug, Clone)]
@@ -19,22 +19,35 @@ pub struct Task {
 }
 
 #[derive(Debug, Clone)]
-pub struct OrderedTask {
+pub struct SortableTask {
     pub task: Task,
     pub order: u64
 }
 
-pub type OrderedTasks = Vec<OrderedTask>;
+pub type SortableTasks = Vec<SortableTask>;
 
-pub fn resolve_task_order(config_structure: ConfigStructure, task_name: &String, strict_match: &bool) -> Result<OrderedTasks, String> {
-    let mut ordered_tasks: OrderedTasks = vec![];
+pub fn get_ordered_tasks(sortable_tasks: &SortableTasks, wanted_order: u64) -> Result<SortableTasks, String> {
+    let mut ordered_tasks: SortableTasks = vec![];
 
-    order_tasks(&mut ordered_tasks, config_structure, task_name, 0, strict_match);
+    for task in sortable_tasks {
+        let SortableTask { order, .. } = task;
+        if *order == wanted_order {
+            ordered_tasks.push(task.clone())
+        }
+    }
 
     Ok(ordered_tasks)
 }
 
-fn order_tasks(ordered_tasks: &mut OrderedTasks, config_structure: ConfigStructure, task_name: &String, index: u64, strict_match: &bool) {
+pub fn resolve_sortable_task(config_structure: ConfigStructure, task_name: &String, strict_match: &bool) -> Result<SortableTasks, String> {
+    let mut sortable_tasks: SortableTasks = vec![];
+
+    sort_tasks(&mut sortable_tasks, config_structure, task_name, 0, strict_match);
+
+    Ok(sortable_tasks)
+}
+
+fn sort_tasks(ordered_tasks: &mut SortableTasks, config_structure: ConfigStructure, task_name: &String, index: u64, strict_match: &bool) {
     let ConfigStructure { config, children } = config_structure;
     let Config { tasks, dir_path, .. } = config;
 
@@ -46,7 +59,7 @@ fn order_tasks(ordered_tasks: &mut OrderedTasks, config_structure: ConfigStructu
         };
 
         if key_matches {
-            ordered_tasks.push(OrderedTask {
+            ordered_tasks.push(SortableTask {
                 task: Task {
                     command: resolve_config_task_command(&config_task.clone()),
                     directory: dir_path.clone(), // compiler says it's being moved, No idea where...
@@ -57,7 +70,7 @@ fn order_tasks(ordered_tasks: &mut OrderedTasks, config_structure: ConfigStructu
     }
 
     for child in children {
-        order_tasks(ordered_tasks, child, task_name, index+1, strict_match);
+        sort_tasks(ordered_tasks, child, task_name, index+1, strict_match);
     }
 }
 
